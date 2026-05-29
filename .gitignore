@@ -2,3 +2,4 @@
 *.txt
 .idea/
 auth.env
+build/

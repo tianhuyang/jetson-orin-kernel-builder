@@ -16,11 +16,12 @@ To successfully run this script, ensure the following:
 ## Usage
 Run the script using:
 ```bash
-./scripts/make_kernel.sh [[-d directory ] | [-h]]
+./scripts/make_kernel.sh [[-d directory ] [--install] | [-h]]
 ```
 
 ### Options
 - `-d, --directory <path>` : Specifies the directory where the kernel source is located (default: `/usr/src/`).
+- `--install` : Installs the built kernel `Image` to `/boot/Image` after a successful build (default: no install).
 - `-h, --help` : Displays the usage information and exits.
 
 ### Example Usage
@@ -31,6 +32,10 @@ To build the kernel using the default kernel source path:
 To specify a custom kernel source directory:
 ```bash
 ./scripts/make_kernel.sh -d /path/to/kernel/source
+```
+To build and install the kernel image:
+```bash
+./scripts/make_kernel.sh --install
 ```
 To display the help message:
 ```bash
@@ -88,6 +93,17 @@ To display the help message:
      ```
      the build is considered successful.
    - Otherwise, an error message is displayed, and the script exits.
+
+10. **Optional Kernel Image Install**
+   - If `--install` is passed, the script copies:
+     ```
+     arch/arm64/boot/Image
+     ```
+     to:
+     ```
+     /boot/Image
+     ```
+   - If `--install` is not passed, the script does not deploy `/boot/Image`.
 
 ## Error Handling
 - If an invalid option is provided, the script displays a usage message and exits.

@@ -34,7 +34,7 @@ quick_backup() {
   tmp_script="$(mktemp)"
   cat >"$tmp_script" <<EOF2
 #!/usr/bin/env bash
-set -euo pipefail
+set -xeuo pipefail
 KREL="${krel}"
 BACKUP_DIR="${backup_root}"
 BACKUP_IMAGE="\${BACKUP_DIR}/Image.bak"
@@ -60,9 +60,7 @@ if [[ -f "\${BACKUP_DIR}/initrd.img-\${KREL}.bak" ]]; then
   cp -a "\${BACKUP_DIR}/initrd.img-\${KREL}.bak" "/boot/initrd.img-\${KREL}"
 fi
 depmod -a "\${KREL}"
-if command -v update-initramfs >/dev/null 2>&1; then
-  update-initramfs -u -k "\${KREL}"
-fi
+nv-update-initrd
 echo "Rollback complete for \${KREL}."
 EOF2
   sudo_run install -m 0755 "$tmp_script" "$backup_root/quick_rollback.sh"
