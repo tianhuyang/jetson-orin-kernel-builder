@@ -266,7 +266,7 @@ download_bsp() {
   else
     rm -f "$BSP_SRC_DIR_FILE.tmp" || true
     log "Downloading BSP sources from $BSP_SRC to $BSP_SRC_DIR_FILE.tmp..."
-    wget -O "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC"
+    curl -o "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC"
     mv "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC_DIR_FILE"
   fi
   BSP_SRC_DIR="$BSP_SRC_DIR/Linux_for_Tegra"

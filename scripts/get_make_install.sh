@@ -90,7 +90,7 @@ make_clean_all() {
   make clean
 }
 
-echo "[INFO] Source target: $BUILD_DIR"
+echo "[INFO] BUILD_DIR: $BUILD_DIR"
 echo "[INFO] Download scope: $DOWNLOAD_SCOPE"
 echo "[INFO] Install after build: $INSTALL"
 
