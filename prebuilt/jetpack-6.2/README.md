@@ -1,19 +1,26 @@
 # Prebuilt Modules
-This directory contains pre-built modules for JetsonLinux 36.4.3 (JetPack 6.2).
-These are typically sourced from the mainstream kernel, and are provided as convenience binaries.
-The vermagic number is 5.15.148-tegra
 
-Each tar file for the module contains:
-* A license file (if it's a Linux in-tree, it is GPL v2).
-* A README.md describing the module with installation instructions
-* The module itself
-* A script to install the module
+This directory contains prebuilt modules for Jetson Linux 36.4.3 (JetPack 6.2).
+These binaries are provided as a convenience for systems where a given in-tree module is not enabled by default.
 
-There is a SHA256SUM for each tar file.
+- Expected `vermagic`: `5.15.148-tegra`
+- Each module archive includes:
+  - License file (for Linux in-tree modules this is typically GPL-2.0)
+  - `README.md` with module-specific notes
+  - Kernel module artifact(s)
+  - Install helper script
 
-Modules are typically named after their module flag. Modules include:
+Each archive has a matching SHA-256 checksum file.
 
-* USB_SERIAL_CH341 - A driver for CH341 based USB to serial adapters.
-* IP_NF_RAW - Part of Netfilter framework, manipulates packets before they enter the iptables processing chain.
+Verify checksums:
+
+```bash
+sha256sum -c *.sha256
+```
+
+Available modules (named by kernel config symbol):
+
+- `USB_SERIAL_CH341` - Driver for CH341-based USB serial adapters.
+- `IP_NF_RAW` - Netfilter raw table support before standard iptables chains.
 
 

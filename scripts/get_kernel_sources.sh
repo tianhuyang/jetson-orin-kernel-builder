@@ -123,6 +123,10 @@ log() {
   echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - ${1}" | tee -a "$LOG_FILE"
 }
 
+debug() {
+  echo "[DEBUG] $(date +"%Y-%m-%d %H:%M:%S") - ${1}" | tee -a "$LOG_FILE"
+}
+
 error_exit() {
   echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - ${1}" | tee -a "$LOG_FILE" >&2
   exit 1
@@ -226,7 +230,8 @@ download_bsp() {
   candidate_minor=""
   for candidate in "${minor_candidates[@]}"; do
     BSP_SRC=$(printf "$BSP_SRC_TMPL" "$candidate")
-    http_code=$(curl -L -sS -o /dev/null -w "%{http_code}" "$BSP_SRC")
+    debug "Checking BSP source URL: $BSP_SRC"
+    http_code=$(curl -I -L -sS -o /dev/null -w "%{http_code}" "$BSP_SRC")
     curl_rc=$?
 
     if [[ -n "$tried_list" ]]; then
@@ -266,7 +271,10 @@ download_bsp() {
   else
     rm -f "$BSP_SRC_DIR_FILE.tmp" || true
     log "Downloading BSP sources from $BSP_SRC to $BSP_SRC_DIR_FILE.tmp..."
-    curl -o "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC"
+    if ! curl -L -fS -o "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC"; then
+      rm -f "$BSP_SRC_DIR_FILE.tmp" || true
+      error_exit "Failed to download BSP sources from $BSP_SRC"
+    fi
     mv "$BSP_SRC_DIR_FILE.tmp" "$BSP_SRC_DIR_FILE"
   fi
   BSP_SRC_DIR="$BSP_SRC_DIR/Linux_for_Tegra"

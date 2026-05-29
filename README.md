@@ -28,7 +28,9 @@ Before using these scripts, ensure:
 If you use `auth.env` and a synced remote workspace, this is the minimal flow:
 
 ```bash
+set -a
 source auth.env
+set +a
 ssh -p "$JETSON_PORT" "$JETSON_USER@$JETSON_HOST"
 ```
 
@@ -36,14 +38,14 @@ On the Jetson shell:
 
 ```bash
 export https_proxy="$JETSON_HTTPS_PROXY"
-cd /home/ubuntu/work/jetson-kernel
-./scripts/get_kernel_sources.sh
+cd /home/dev/work/jetson-kernel
+bash scripts/get_kernel_sources.sh -d /data/dev/build -l "$PWD/logs"
 ```
 
 Optional full sync mode (instead of default required-only mode):
 
 ```bash
-./scripts/get_kernel_sources.sh --download-scope all
+bash scripts/get_kernel_sources.sh -d /data/dev/build -l "$PWD/logs" --download-scope all
 ```
 
 ---
@@ -54,22 +56,25 @@ Optional full sync mode (instead of default required-only mode):
 #### [`get_kernel_sources.sh`](scripts/get_kernel_sources.sh)
 **Syncs and configures** kernel source for **Jetson Linux 36.X**.
 - Automatically detects **L4T version**.
-- Supports **backing up or replacing** existing kernel sources.
-- Uses [`source_sync.sh`](scripts/source_sync.sh) to sync sources by L4T tag.
-- Publishes required trees into `/usr/src` using `rsync`.
-- Copies the **current kernel config** as basis for modification.
+- Downloads BSP sources into a build workspace and expands kernel trees.
+- Uses [`source_sync.sh`](scripts/source_sync.sh) to sync sources by resolved L4T tag.
+- Publishes staged source subfolders into the BSP `source/` tree using non-destructive `rsync`.
+- Writes `build.env` with `KERNEL_SRC_DIR=...` for downstream scripts.
 
 Usage:
 ```bash
-./scripts/get_kernel_sources.sh [-d /usr/src] [--force-replace] [--force-backup] [--download-scope required|all]
+bash scripts/get_kernel_sources.sh [-d <build_dir>] [-l <log_dir>] [--force-replace] [--download-scope required|all]
 ```
 Options:
-- `-d | --directory <path>` → Parent source directory (default: `/usr/src`).
-- `--force-replace` → Delete existing target source trees and sync fresh sources.
-- `--force-backup` → Backup existing target source trees before syncing new ones.
-- `--download-scope required|all` → Choose sync scope:
-  - `required` (default): publish `/usr/src/kernel/kernel-jammy-src`, `/usr/src/nvidia/nvidia-oot`, `/usr/src/nvidia/nvdisplay`
-  - `all`: additionally mirror full sync tree to `/usr/src/source_sync_all`
+- `-d | --directory <path>` → Build directory (default: `./build`).
+- `-l | --log <path>` → Log directory (default: `./logs`).
+- `--force-replace` → Replace existing destination source folders before publish.
+- `--download-scope required|all` → `required` (default) or full sync list.
+
+Outputs:
+- BSP + synchronized sources under `<build_dir>/Tegras/<major>-<minor>/Linux_for_Tegra/source`
+- Staging workspace under `<build_dir>/jetson-kernel-sync/<resolved_tag>`
+- Environment file: `<build_dir>/build.env`
 
 ---
 
@@ -187,23 +192,21 @@ Options:
 Runs the full pipeline in one command:
 - `get_kernel_sources.sh`
 - `config.sh`
-- `make_kernel.sh`
-- `make_kernel_modules.sh`
-- `make_oot_modules.sh` (unless skipped)
+- build kernel and modules
+- optional install + initramfs update
 
 Usage:
 ```bash
-./scripts/get_make_install.sh [--download-scope required|all] [--force-replace|--force-backup] [--install] [--skip-oot] [--oot-scope full|net] [--stage-dir /tmp/oot_stage] [-d /usr/src]
+bash scripts/get_make_install.sh [-d <build_dir>] [-l <log_dir>] [--download-scope required|all] [--clean] [--install] [--reboot]
 ```
 
 Options:
-- `--install` → Install `/boot/Image` and run `modules_install` after build (default: no install).
-- `-d | --directory <path>` → Parent source directory passed to source retrieval and build scripts (default: `/usr/src`).
-- `--download-scope required|all` → Choose required-only or full source sync (default: `required`).
-- `--force-replace | --force-backup` → Control existing source-tree handling during retrieval.
-- `--skip-oot` → Skip OOT module build/install stage.
-- `--oot-scope full|net` → Select OOT build scope passed to `make_oot_modules.sh` (default: `net`).
-- `--stage-dir <path>` → Stage OOT modules to versioned tree + tarball + sha256.
+- `-d | --directory <path>` → Build directory (default: `/data/dev/build` if `BUILD_DIR` is unset).
+- `-l | --log <path>` → Log directory (default: `./logs`).
+- `--download-scope required|all` → Source sync scope (default: `required`).
+- `--clean` → Run clean before build.
+- `--install` → Install kernel + modules and update initramfs.
+- `--reboot` → Reboot after successful install (requires `--install`).
 
 ---
 
